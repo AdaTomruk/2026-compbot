@@ -42,6 +42,8 @@ public class FlywheelSubsystem extends SubsystemBase {
 
         // Set right motor to follow the left (leader) motor
         rightFlywheelMotor.setControl(followerRequest);
+        SmartDashboard.putNumber("shooter", 1000);
+
     }
 
     private void configureMotors() {
@@ -116,7 +118,8 @@ public class FlywheelSubsystem extends SubsystemBase {
 
     /** Sets flywheel to standard shooting speed. */
     public void shoot() {
-        setRPM(STANDARD_SHOOT_RPM);
+        double a = SmartDashboard.getNumber("shooter", 1000);
+        setRPM(a);
     }
 
     /** Sets flywheel to warm-up speed (75% of shooting speed). */
@@ -155,6 +158,11 @@ public class FlywheelSubsystem extends SubsystemBase {
 
     /** @return true when flywheel is at standard shooting speed. */
     public boolean atShootSpeed() {
-        return atSpeed(STANDARD_SHOOT_RPM);
+        
+        if (getRPM() < (targetRPM/100)*90){
+            return true;
+        }
+        return false;
+
     }
 }

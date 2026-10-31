@@ -174,6 +174,10 @@ public class IntakeArmSubsystem extends SubsystemBase {
         return mPeriodicIO.state;
     }
 
+    public void adjustTargetAngle(double deltaDeg){
+        mPeriodicIO.arm_target += deltaDeg;
+    }
+
     // --- Write Outputs ---
     private void writePeriodicOutputs() {
         double curTime = Timer.getFPGATimestamp();

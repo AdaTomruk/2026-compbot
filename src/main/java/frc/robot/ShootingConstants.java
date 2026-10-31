@@ -10,5 +10,11 @@ public class ShootingConstants {
     
     // Position of the target on the field (Update these to the 2026 field map locations!)
     public static final Translation2d BLUE_TARGET = new Translation2d(4.5, 4.0); 
-    public static final Translation2d RED_TARGET = new Translation2d(12, 4);
+    public static final Translation2d RED_TARGET = new Translation2d(11.9, 4);
+
+    // Kenar/Köşe (Side) hedefleri - Koordinatları sahanıza göre ince ayar yapabilirsiniz
+    public static final Translation2d BLUE_UPPER_TARGET = new Translation2d(1.5, 7.0); 
+    public static final Translation2d BLUE_LOWER_TARGET = new Translation2d(1.5, 1.0); 
+    public static final Translation2d RED_UPPER_TARGET = new Translation2d(15.0, 7.0); 
+    public static final Translation2d RED_LOWER_TARGET = new Translation2d(15.0, 1.0); 
 }

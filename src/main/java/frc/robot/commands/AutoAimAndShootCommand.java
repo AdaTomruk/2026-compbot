@@ -20,7 +20,6 @@ public class AutoAimAndShootCommand extends Command {
     private final TurretSubsystem turret;
     private final HoodSubsystem hood;
     private final FlywheelSubsystem flywheel;
-    private final FeederSubsystem feeder;
     private final ShootingCalculator calculator;
 
     /**
@@ -31,18 +30,16 @@ public class AutoAimAndShootCommand extends Command {
         CommandSwerveDrivetrain drivetrain, 
         TurretSubsystem turret, 
         HoodSubsystem hood, 
-        FlywheelSubsystem flywheel,
-        FeederSubsystem feeder
+        FlywheelSubsystem flywheel
     ) {
         this.drivetrain = drivetrain;
         this.turret = turret;
         this.hood = hood;
         this.flywheel = flywheel;
-        this.feeder = feeder;
         this.calculator = ShootingCalculator.getInstance();
         
         // Ensure no other commands use these subsystems while aiming
-        addRequirements(turret, hood, flywheel, feeder);
+        addRequirements(turret, hood, flywheel);
     }
 
     @Override
@@ -55,7 +52,6 @@ public class AutoAimAndShootCommand extends Command {
     @Override
     public void execute() {
         if (!turret.isCRTSeeded()) {
-            feeder.stop();
             flywheel.warmUp();
             return;
         }
@@ -88,13 +84,10 @@ public class AutoAimAndShootCommand extends Command {
 
             // 7. Fire the ball through the funnel if all conditions are met
             if (turretReady && hoodReady && flywheelReady) {
-                feeder.runFeeder();
             } else {
-                feeder.stop();
             }
         } else {
             // If the robot is out of range, stop the feeder and spin flywheels to a neutral speed
-            feeder.stop();
             flywheel.warmUp(); //
         }
     }
@@ -102,7 +95,6 @@ public class AutoAimAndShootCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         // Clean up when the button is released
-        feeder.stop();
         flywheel.stop(); // or flywheel.warmUp() if you want to stay ready
         turret.stop();   //
         hood.enableDashboardControl();

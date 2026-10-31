@@ -71,12 +71,16 @@ public class IntakeSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Intake/Outer_Output", outerRollerMotor.get());
     }
 
+    public void feedToShooter(){
+        upperIndexMotor.set(UPPER_INDEX_INTAKE_OUTPUT);
+        bottomRollerMotor.set(BOTTOM_ROLLER_INTAKE_OUTPUT);
+
+    }
+
     // ── Roller control ────────────────────────────────────────────────────────
 
     /** Runs all intake rollers inward to acquire game pieces. */
     public void intake() {
-        upperIndexMotor.set(UPPER_INDEX_INTAKE_OUTPUT);
-        bottomRollerMotor.set(BOTTOM_ROLLER_INTAKE_OUTPUT);
         outerRollerMotor.set(OUTER_ROLLER_INTAKE_OUTPUT);
     }
 
@@ -84,13 +88,17 @@ public class IntakeSubsystem extends SubsystemBase {
     public void outtake() {
         upperIndexMotor.set(UPPER_INDEX_OUTTAKE_OUTPUT);
         bottomRollerMotor.set(BOTTOM_ROLLER_OUTTAKE_OUTPUT);
-        outerRollerMotor.set(OUTER_ROLLER_OUTTAKE_OUTPUT);
     }
 
     /** Stops all roller motors. */
     public void stopRollers() {
+       
+        outerRollerMotor.stopMotor();
+    }
+
+    public void stopFeedeToShooter(){
         upperIndexMotor.stopMotor();
         bottomRollerMotor.stopMotor();
-        outerRollerMotor.stopMotor();
+
     }
 }

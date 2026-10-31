@@ -39,9 +39,10 @@ public class ShootingCalculator {
         double hoodVelocityDegPerSec,
         double flywheelRPM) {}
 
-    private static final double minDistance = 1.34;
-    private static final double maxDistance = 5.60;
+    private static final double minDistance = 1.45;
+    private static final double maxDistance = 6.95;
     private static final double phaseDelay = 0.03;
+
 
     // Interpolation Maps
     private static final InterpolatingTreeMap<Double, Rotation2d> launchHoodAngleMap =
@@ -50,36 +51,41 @@ public class ShootingCalculator {
     private static final InterpolatingDoubleTreeMap timeOfFlightMap = new InterpolatingDoubleTreeMap();
 
     static {
+        double offset_a = 20;
+
         // Distance (meters) -> Hood Angle
-        launchHoodAngleMap.put(1.34, Rotation2d.fromDegrees(19.0));
-        launchHoodAngleMap.put(1.78, Rotation2d.fromDegrees(19.0));
-        launchHoodAngleMap.put(2.17, Rotation2d.fromDegrees(24.0));
-        launchHoodAngleMap.put(2.81, Rotation2d.fromDegrees(27.0));
-        launchHoodAngleMap.put(3.82, Rotation2d.fromDegrees(29.0));
-        launchHoodAngleMap.put(4.09, Rotation2d.fromDegrees(30.0));
-        launchHoodAngleMap.put(4.40, Rotation2d.fromDegrees(31.0));
-        launchHoodAngleMap.put(4.77, Rotation2d.fromDegrees(32.0));
-        launchHoodAngleMap.put(5.57, Rotation2d.fromDegrees(32.0));
-        launchHoodAngleMap.put(5.60, Rotation2d.fromDegrees(35.0));
+        launchHoodAngleMap.put(1.45, Rotation2d.fromDegrees(18.2));
+        launchHoodAngleMap.put(1.95, Rotation2d.fromDegrees(18.2));
+        launchHoodAngleMap.put(2.45, Rotation2d.fromDegrees(18.2));
+        launchHoodAngleMap.put(2.95, Rotation2d.fromDegrees(18.2));
+        launchHoodAngleMap.put(3.45, Rotation2d.fromDegrees(18.2));
+        launchHoodAngleMap.put(4.95, Rotation2d.fromDegrees(25.0));
+        launchHoodAngleMap.put(4.45, Rotation2d.fromDegrees(35.0));
+        launchHoodAngleMap.put(4.95, Rotation2d.fromDegrees(45.0));
+        launchHoodAngleMap.put(5.45, Rotation2d.fromDegrees(55.0));
+        launchHoodAngleMap.put(5.95, Rotation2d.fromDegrees(60.0));
+        launchHoodAngleMap.put(6.65, Rotation2d.fromDegrees(65.0));
+        launchHoodAngleMap.put(6.95, Rotation2d.fromDegrees(68.0));
 
         // Distance (meters) -> Flywheel RPM
-        launchFlywheelSpeedMap.put(1.34, 210.0);
-        launchFlywheelSpeedMap.put(1.78, 220.0);
-        launchFlywheelSpeedMap.put(2.17, 220.0);
-        launchFlywheelSpeedMap.put(2.81, 230.0);
-        launchFlywheelSpeedMap.put(3.82, 250.0);
-        launchFlywheelSpeedMap.put(4.09, 255.0);
-        launchFlywheelSpeedMap.put(4.40, 260.0);
-        launchFlywheelSpeedMap.put(4.77, 265.0);
-        launchFlywheelSpeedMap.put(5.57, 275.0);
-        launchFlywheelSpeedMap.put(5.60, 290.0);
+        launchFlywheelSpeedMap.put(1.45, 950.0+offset_a);
+        launchFlywheelSpeedMap.put(1.95, 1020.0+offset_a);
+        launchFlywheelSpeedMap.put(2.45, 1040.0+offset_a);
+        launchFlywheelSpeedMap.put(2.95, 1100.0+offset_a);
+        launchFlywheelSpeedMap.put(3.45, 1150.0+offset_a);
+        launchFlywheelSpeedMap.put(3.95, 1200.0+offset_a);
+        launchFlywheelSpeedMap.put(4.45, 1200.0+offset_a);
+        launchFlywheelSpeedMap.put(4.95, 1280.0+offset_a);
+        launchFlywheelSpeedMap.put(5.45, 1330.0+offset_a);
+        launchFlywheelSpeedMap.put(5.95, 1390.0+offset_a);
+        launchFlywheelSpeedMap.put(6.45, 1455.0+offset_a);
+        launchFlywheelSpeedMap.put(6.95, 1528.0+offset_a);
 
         // Distance (meters) -> Time of flight (seconds)
-        timeOfFlightMap.put(5.68, 1.16);
-        timeOfFlightMap.put(4.55, 1.12);
-        timeOfFlightMap.put(3.15, 1.11);
-        timeOfFlightMap.put(1.88, 1.09);
-        timeOfFlightMap.put(1.38, 0.90);
+        timeOfFlightMap.put(1.95, 1.1125);
+        timeOfFlightMap.put(2.95, 1.0725);
+        timeOfFlightMap.put(3.95, 1.27875);
+        timeOfFlightMap.put(4.95, 1.32375);
     }
 
     /**
@@ -130,8 +136,8 @@ public class ShootingCalculator {
             
             timeOfFlight = timeOfFlightMap.get(clampedDistance);
             
-            double offsetX = turretVelocityX * timeOfFlight;
-            double offsetY = turretVelocityY * timeOfFlight;
+            double offsetX = -turretVelocityX * timeOfFlight;
+            double offsetY = -turretVelocityY * timeOfFlight;
             
             lookaheadPose = new Pose2d(
                 turretPosition.getTranslation().plus(new Translation2d(offsetX, offsetY)),

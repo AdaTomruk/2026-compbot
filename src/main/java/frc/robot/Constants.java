@@ -2,7 +2,23 @@ package frc.robot;
 
 import com.ctre.phoenix6.signals.InvertedValue;
 
-public final class Constants {
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
+
+public final    class Constants {
+
+    public static final class VisionConstants {
+        public static final String LIMELIGHT_NAME = "limelight-adacam";
+
+        // NEW: Physical offset of the Limelight from the center of the turret's rotation.
+        // X = Forward (direction the turret shoots), Y = Left, Z = Up
+        // ⚠️ REPLACE THESE WITH YOUR ACTUAL PHYSICAL MEASUREMENTS
+        public static final Transform3d TURRET_TO_CAMERA = new Transform3d(
+            new Translation3d(-0.11, 0.0, 0.32), // Example: Camera is 15cm left, 10cm up from turret center
+            new Rotation3d(0, Math.toRadians(25), 0) // Example: Camera is pitched up 25 degrees
+        );
+    }
 
     public static final class IntakeConstants {
 
@@ -19,17 +35,17 @@ public final class Constants {
         public static final boolean OUTER_ROLLER_INVERTED  = false;
 
         // ── Current Limits (A) ────────────────────────────────────────────────
-        public static final int ROLLER_SMART_CURRENT_LIMIT_A = 40;
+        public static final int ROLLER_SMART_CURRENT_LIMIT_A = 70;
         public static final int PIVOT_SMART_CURRENT_LIMIT_A  = 30;
 
         // ── Roller Output Setpoints ───────────────────────────────────────────
-        public static final double UPPER_INDEX_INTAKE_OUTPUT  = 0.65;
-        public static final double BOTTOM_ROLLER_INTAKE_OUTPUT = 0.70;
-        public static final double OUTER_ROLLER_INTAKE_OUTPUT  = 0.75;
+        public static final double UPPER_INDEX_INTAKE_OUTPUT  = -0.5;
+        public static final double BOTTOM_ROLLER_INTAKE_OUTPUT = 0.4;
+        public static final double OUTER_ROLLER_INTAKE_OUTPUT  = -0.4;
 
-        public static final double UPPER_INDEX_OUTTAKE_OUTPUT  = -0.65;
-        public static final double BOTTOM_ROLLER_OUTTAKE_OUTPUT = -0.70;
-        public static final double OUTER_ROLLER_OUTTAKE_OUTPUT  = -0.75;
+        public static final double UPPER_INDEX_OUTTAKE_OUTPUT  = 0.5;
+        public static final double BOTTOM_ROLLER_OUTTAKE_OUTPUT = -0.4;
+        public static final double OUTER_ROLLER_OUTTAKE_OUTPUT  = 0.4;
 
         // ── Pivot Gearing ─────────────────────────────────────────────────────
         // 15:1 AM Sport planetary + 24:15 timing belt = 24:1 overall
@@ -38,13 +54,13 @@ public final class Constants {
         // ── Pivot Angle Setpoints (mechanism degrees) ─────────────────────────
         // Boot-zero convention: robot starts physically in Closed position.
         public static final double PIVOT_CLOSED_ANGLE_DEG = 0.0;
-        public static final double PIVOT_OPEN_ANGLE_DEG   = 90.0; // ⚠️ verify on hardware
+        public static final double PIVOT_OPEN_ANGLE_DEG   = 350.0; // ⚠️ verify on hardware
 
         // ── Pivot Soft/Hard Limits (mechanism degrees) ────────────────────────
-        public static final double PIVOT_SOFT_MIN_ANGLE_DEG = -5.0;
-        public static final double PIVOT_SOFT_MAX_ANGLE_DEG = 95.0;
-        public static final double PIVOT_HARD_MIN_ANGLE_DEG = -10.0;
-        public static final double PIVOT_HARD_MAX_ANGLE_DEG = 100.0;
+        public static final double PIVOT_SOFT_MIN_ANGLE_DEG = -1380.0;
+        public static final double PIVOT_SOFT_MAX_ANGLE_DEG = 380.0;
+        public static final double PIVOT_HARD_MIN_ANGLE_DEG = -1380.0;
+        public static final double PIVOT_HARD_MAX_ANGLE_DEG = 400.0;
         public static final double PIVOT_AT_TARGET_TOLERANCE_DEG = 2.0;
 
         // ── PID Gains ─────────────────────────────────────────────────────────
@@ -96,9 +112,9 @@ public final class Constants {
         public static final double kA = 0.0;  // ⚠️ leave at 0 until speed stage 3+
 
         // ── MotionMagic ───────────────────────────────────────────────────────
-        public static final double TURRET_CRUISE_DEG_PER_SEC = 45.0; // ⚠️ increase per speed guide
-        public static final double TURRET_ACCEL_DEG_PER_SEC2 = 90.0; // always 2× cruise
-        public static final double TURRET_JERK_DEG_PER_SEC3  = 450.0; // always 10× cruise
+        public static final double TURRET_CRUISE_DEG_PER_SEC = 2000.0; // ⚠️ increase per speed guide
+        public static final double TURRET_ACCEL_DEG_PER_SEC2 = 4000.0; // always 2× cruise
+        public static final double TURRET_JERK_DEG_PER_SEC3  = 20000.0; // always 10× cruise
 
         public static final double MM_CRUISE_VELOCITY =
             (TURRET_CRUISE_DEG_PER_SEC / 360.0) * MOTOR_TO_MECHANISM_RATIO;
@@ -108,12 +124,12 @@ public final class Constants {
             (TURRET_JERK_DEG_PER_SEC3  / 360.0) * MOTOR_TO_MECHANISM_RATIO;
 
         // ── Mechanism Range ───────────────────────────────────────────────────
-        public static final double MIN_ANGLE_ROT = -0.5;
-        public static final double MAX_ANGLE_ROT =  0.5;
+        public static final double MIN_ANGLE_ROT = -0.3;
+        public static final double MAX_ANGLE_ROT =  0.3;
 
         // ── CRT ───────────────────────────────────────────────────────────────
-        public static final double ENCODER_10T_OFFSET_ROT  = 0.0;
-        public static final double ENCODER_17T_OFFSET_ROT  = 0.0;
+        public static final double ENCODER_10T_OFFSET_ROT  = 0.081299;
+        public static final double ENCODER_17T_OFFSET_ROT  = -0.269287;
         public static final double CRT_MATCH_TOLERANCE_ROT = 0.06;
 
         // ── Control ───────────────────────────────────────────────────────────
@@ -122,9 +138,9 @@ public final class Constants {
 
     public static final class FeederConstants {
         public static final int FEEDER_MOTOR_ID = 36; // Change this to your actual CAN ID
-        public static final double FEEDER_SPEED = 0.6; // Speed for moving the ball up
+        public static final double FEEDER_SPEED = 0.5; // Speed for moving the ball up
         public static final boolean MOTOR_INVERTED = false;
-        public static final int CURRENT_LIMIT = 30; // Amps
+        public static final int CURRENT_LIMIT = 60; // Amps
     }
 
     public static final class ShooterConstants {
@@ -138,15 +154,15 @@ public final class Constants {
         public static final double FLYWHEEL_GEAR_RATIO = 1.0; // 1:1 direct drive
 
         // ── Flywheel Speeds ───────────────────────────────────────────────────
-        public static final double STANDARD_SHOOT_RPM = 5000.0;
-        public static final double WARM_UP_RPM        = 3750.0; // 75% of standard
+        public static final double STANDARD_SHOOT_RPM = 2000.0;
+        public static final double WARM_UP_RPM        = 1000.0; // 75% of standard
 
         // ── Flywheel Motor Inverts ────────────────────────────────────────────
-        public static final boolean LEFT_FLYWHEEL_INVERTED  = false;
-        public static final boolean RIGHT_FLYWHEEL_INVERTED = true;
+        public static final boolean LEFT_FLYWHEEL_INVERTED  = true;
+        public static final boolean RIGHT_FLYWHEEL_INVERTED = false;
 
         // ── Current Limits (A) ────────────────────────────────────────────────
-        public static final double FLYWHEEL_SUPPLY_CURRENT_LIMIT = 60.0;
+        public static final double FLYWHEEL_SUPPLY_CURRENT_LIMIT = 80.0;
         public static final double FLYWHEEL_STATOR_CURRENT_LIMIT = 80.0;
 
         // ── Flywheel PID / Feedforward ────────────────────────────────────────
@@ -178,7 +194,7 @@ public final class Constants {
 
         // ── Angle Limits (mechanism degrees) ─────────────────────────────────
         public static final double HOOD_STARTING_ANGLE_DEG      = 18.2;
-        public static final double HOOD_MAX_TRAVEL_DEG          = 38.0;
+        public static final double HOOD_MAX_TRAVEL_DEG          = 100.0;
         public static final double HOOD_MIN_ANGLE_DEG           = HOOD_STARTING_ANGLE_DEG;
         public static final double HOOD_MAX_ANGLE_DEG           = HOOD_STARTING_ANGLE_DEG + HOOD_MAX_TRAVEL_DEG; // 56.2°
         public static final double HOOD_AT_TARGET_TOLERANCE_DEG = 1.0;

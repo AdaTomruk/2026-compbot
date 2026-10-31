@@ -8,6 +8,8 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.FollowPathCommand;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -26,7 +28,13 @@ import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.generated.TunerConstants;
 
 import frc.robot.commands.AutoAimAndShootCommand; // Import your new command
+import frc.robot.commands.AutoAimSideCommand;
 import frc.robot.commands.AutoAimTurretCommand;
+
+import frc.robot.commands.AutoAimSideCommand; // İçe aktarmayı unutmayın
+
+import com.pathplanner.lib.auto.NamedCommands;
+
 
 public class RobotContainer {
 
@@ -63,8 +71,26 @@ public class RobotContainer {
     public RobotContainer() {
         SmartDashboard.putNumber("Turret Target Angle (deg)", 0.0);
         SmartDashboard.putNumber("Hood Target Angle (deg)", Constants.HoodConstants.HOOD_MIN_ANGLE_DEG);
+        
+        // =========================================================================
+        // OTONOM İÇİN PATHPLANNER NAMED COMMANDS (İSİMLENDİRİLMİŞ KOMUTLAR)
+        // =========================================================================
+        
+        // 1. Atış Komutu (Sonsuza kadar takılmaması için 2.5 saniye sınır koyuyoruz)
+        NamedCommands.registerCommand("Shoot", 
+            new AutoAimAndShootCommand(drivetrain, turret, hood, flywheel).withTimeout(6)
+        );
 
-        autoChooser = AutoBuilder.buildAutoChooser("Tests");
+        // 2. Intake Kolunu Aç ve Kapat
+        NamedCommands.registerCommand("IntakeArmOpen", Commands.runOnce(intakeArm::openArm, intakeArm));
+        NamedCommands.registerCommand("IntakeArmClose", Commands.runOnce(intakeArm::closeArm, intakeArm));
+
+        // 3. Intake Roller'ları Çalıştır ve Durdur
+        NamedCommands.registerCommand("IntakeRollersOn", Commands.runOnce(intake::intake, intake));
+        NamedCommands.registerCommand("IntakeRollersOff", Commands.runOnce(intake::stopRollers, intake));
+        
+        // =========================================================================
+        autoChooser = AutoBuilder.buildAutoChooser("baran auto");
         SmartDashboard.putData("Auto Mode", autoChooser);
 
         configureBindings();
@@ -73,6 +99,7 @@ public class RobotContainer {
     }
 
     private void configureBindings() {
+        
 
         // --- Drivetrain Default ---
         drivetrain.setDefaultCommand(
@@ -89,31 +116,26 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        configureDriveBindings();
+        //configureDriveBindings();
         configureTurretBindings();
-        //configureIntakeBindings();
+        configureIntakeBindings();
         configureFeederBindings();
         configureShooterBindings();
 
         joystick.rightTrigger().whileTrue(
-            new AutoAimAndShootCommand(drivetrain, turret, hood, flywheel, feeder)
+            new AutoAimAndShootCommand(drivetrain, turret, hood, flywheel)
         );
 
-        joystick.leftTrigger().whileTrue(
-            new AutoAimTurretCommand(drivetrain, turret)
-        );
+
+        joystick.povUp().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
     }
 
-    private void configureDriveBindings() {
-        // Reset field-centric heading
-        joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
-    }
 
     private void configureTurretBindings() {
         // Go to SmartDashboard angle
         joystick.x().onTrue(Commands.runOnce(() -> {
-            double angle = SmartDashboard.getNumber("Turret Target Angle (deg)", 0.0);
+            double angle = SmartDashboard.getNumber("Turret Target Angle (deg)", 180);
             turret.setFieldHeading(angle);
         }, turret));
 
@@ -127,14 +149,21 @@ public class RobotContainer {
         joystick.y().onTrue(Commands.runOnce(intakeArm::toggleArm, intakeArm));
 
         // Run rollers in (hold)
-        joystick.leftTrigger()
-            .whileTrue(Commands.run(intake::intake, intake))
-            .onFalse(Commands.runOnce(intake::stopRollers, intake));
+        joystick.rightBumper()
+            .whileTrue(Commands.run(intake::intake, intake));
+        
+        joystick.leftBumper()
+            .whileTrue(Commands.run(intake::stopRollers, intake));
 
-        // Run rollers out (hold)
-        joystick.rightTrigger()
-            .whileTrue(Commands.run(intake::outtake, intake))
-            .onFalse(Commands.runOnce(intake::stopRollers, intake));
+        joystick.leftTrigger()
+            .whileTrue(Commands.run(intake::feedToShooter, intake));
+
+        joystick.leftTrigger().onFalse(Commands.runOnce(intake::stopFeedeToShooter, intake));
+
+        joystick.povDown().whileTrue(Commands.run(() -> intakeArm.adjustTargetAngle(0.5), intakeArm));
+        joystick.povLeft().whileTrue(Commands.run(() -> intakeArm.adjustTargetAngle(-0.5), intakeArm));
+
+        
     }
 
     private void configureFeederBindings() {
@@ -143,38 +172,19 @@ public class RobotContainer {
             .whileTrue(Commands.run(feeder::runFeeder, feeder))
             .onFalse(Commands.runOnce(feeder::stop, feeder));
 
-        // Run feeder reverse (hold) to clear jams
-        joystick.povDown()
-            .whileTrue(Commands.run(feeder::reverseFeeder, feeder))
-            .onFalse(Commands.runOnce(feeder::stop, feeder));
+        joystick.leftTrigger()
+            .whileTrue(Commands.run(feeder::reverseFeeder, feeder));
+
+        joystick.leftTrigger().onFalse(Commands.runOnce(feeder::stop, feeder));
+
+
     }
 
     private void configureShooterBindings() {
-    // ── Flywheel ──────────────────────────────────────────────────────────
-    joystick.a()
-        .whileTrue(Commands.run(flywheel::shoot, flywheel))
-        .onFalse(Commands.runOnce(flywheel::stop, flywheel));
-
-    joystick.b()
-        .whileTrue(Commands.run(flywheel::warmUp, flywheel))
-        .onFalse(Commands.runOnce(flywheel::stop, flywheel));
-
     // ── Hood ──────────────────────────────────────────────────────────────
-    // Toggle PID — no subsystem requirement so POV bindings never interrupt it
-    joystick.rightBumper().onTrue(Commands.runOnce(() -> {
-        if (hood.isPIDEnabled()) {
-            hood.disablePID();
-        } else {
-            hood.enablePID();
-        }
-    }));
 
     // Set hood to SmartDashboard angle
-    joystick.povUp().onTrue(Commands.runOnce(() -> {
-        double angle = SmartDashboard.getNumber("Hood Target Angle (deg)",
-            Constants.HoodConstants.HOOD_MIN_ANGLE_DEG);
-        hood.setAngle(angle);
-    }, hood));
+
 
 }
 
